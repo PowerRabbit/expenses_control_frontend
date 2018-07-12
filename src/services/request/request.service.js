@@ -1,3 +1,5 @@
+import 'abortcontroller-polyfill/dist/polyfill-patch-fetch'
+const AbortController = window.AbortController;
 const request = (url) => {
     const controller = new AbortController();
     const signal = controller.signal;
