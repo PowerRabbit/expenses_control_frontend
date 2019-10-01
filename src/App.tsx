@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Switch, Route, Link } from "react-router-dom";
+import { HashRouter, Switch, Route, Link } from "react-router-dom";
 import { EcProfile } from './components/profile.component'
 import { EcAuth } from './components/auth.component'
 
@@ -9,7 +9,7 @@ import { EcAuth } from './components/auth.component'
 
     function App() {
         return (
-        <Router>
+        <HashRouter hashType="hashbang">
             <div>
                 <nav>
                     <ul>
@@ -39,7 +39,7 @@ import { EcAuth } from './components/auth.component'
                     </Route>
                 </Switch>
             </div>
-        </Router>
+        </HashRouter>
         );
     }
 
