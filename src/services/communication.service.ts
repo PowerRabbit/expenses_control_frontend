@@ -1,6 +1,5 @@
 import { RequestMethod, EcResponseType } from "../enum/communication.enum";
-
-const SERVER_URL = 'http://localhost:5000/';
+import { SETTINGS } from "../private.settings";
 
 type EcRequestOptions = {
     url: string;
@@ -8,7 +7,7 @@ type EcRequestOptions = {
     payload?: Record<string, string>;
 }
 
-type EcResponse = {
+export type EcResponse = {
     type: EcResponseType;
     data: Record<string, string>;
     message: string;
@@ -99,7 +98,7 @@ class CommunicationServiceSingleton {
     }
 
     private async makeRequest(url: string, method: string, payload?: Record<string, string>): Promise<EcResponse> {
-        const request = new EcRequest({url: SERVER_URL + url, method: (method as RequestMethod), payload});
+        const request = new EcRequest({url: SETTINGS.SERVER_URL + url, method: (method as RequestMethod), payload});
         const sameRequest = this.requests.find(r => r.fullSignature === request.fullSignature);
 
         if (sameRequest) {
