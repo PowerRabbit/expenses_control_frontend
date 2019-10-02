@@ -1,9 +1,11 @@
 import { RequestMethod, EcResponseType } from "../enum/communication.enum";
 
+const SERVER_URL = 'http://localhost:5000/';
+
 type EcRequestOptions = {
     url: string;
     method: RequestMethod;
-    payload: Record<string, string>;
+    payload?: Record<string, string>;
 }
 
 type EcResponse = {
@@ -17,7 +19,7 @@ class EcRequest {
     private url: string;
     private method: RequestMethod;
     private abortController: AbortController;
-    private payload: string;
+    private payload: string | null;
 
     public cancelled = false;
     public shortSignature: string;
@@ -35,7 +37,7 @@ class EcRequest {
         this.url = options.url;
         this.method = options.method;
         this.abortController = new AbortController();
-        this.payload = JSON.stringify(options.payload);
+        this.payload = options.payload ? JSON.stringify(options.payload) : null;
         this.shortSignature = this.method + this.url;
         this.fullSignature = this.shortSignature + this.payload;
     }
@@ -62,12 +64,15 @@ class EcRequest {
             const response = await fetch(this.url, {
                 method: this.method,
                 body: this.payload,
+                signal: this.abortController.signal,
+                mode: 'cors',
                 headers:{
                   'Content-Type': 'application/json'
                 }
             }).then(res => res.json());
             return this.composeResult(EcResponseType.error, response);
         } catch(e) {
+            console.warn(e);
             return this.composeResult(EcResponseType.error, e);
         }
     }
@@ -93,8 +98,8 @@ class CommunicationServiceSingleton {
         }
     }
 
-    public async makeRequest(url: string, method: string, payload: Record<string, string>): Promise<EcResponse> {
-        const request = new EcRequest({url, method: (method as RequestMethod), payload});
+    private async makeRequest(url: string, method: string, payload?: Record<string, string>): Promise<EcResponse> {
+        const request = new EcRequest({url: SERVER_URL + url, method: (method as RequestMethod), payload});
         const sameRequest = this.requests.find(r => r.fullSignature === request.fullSignature);
 
         if (sameRequest) {
@@ -113,8 +118,17 @@ class CommunicationServiceSingleton {
         result.then(() => {
             this.removeFromPool(this.requests.indexOf(request));
         });
+        this.requests.push(request);
 
         return result;
+    }
+
+    public get(url: string) {
+        return this.makeRequest(url, RequestMethod.get);
+    }
+
+    public post(url: string, payload: Record<string, string>) {
+        return this.makeRequest(url, RequestMethod.post, payload);
     }
 }
 
